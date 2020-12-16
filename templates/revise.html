@@ -1,0 +1,228 @@
+{% extends "layout.html" %}
+{% block content %}
+
+
+<br>
+<h1>{{ title }}</h1>
+<div class="row">
+    <div class="col-md-10">
+        <h2>修正ページ</h2>
+    </div>
+    <div class="col-md-2">
+        <a href="/" class="btn btn-primary">戻る</a>
+    </div>
+</div>
+
+<p>データベースを直接操作して記録を修正します。</p>
+<p>現在の入室者を記録するテーブルと全履歴を記録するテーブルの2つのテーブルによってデータベースを管理しています。</p>
+
+<hr class="my-4">
+
+<h3>在室者情報を変更する</h3>
+
+<p>退室ボタンを押すと退室していることになります。入室ボタンを押すと入室したことになります。</p>
+
+<table class="table">
+    <thead class="table-dark">
+        <tr>
+            <th>学籍番号</th>
+            <th>名前</th>
+            <th>入室時刻</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in room %}
+        <tr>
+            <td>{{ t['student_id'] }}</td>
+            <td>{{ t['student_name'] }}</td>
+            <td>{{ t['time'] }}</td>
+            <td>
+                <form action="/revise/left/{{ t['student_id'] }}" method="post" novalidate>
+                    <input type="submit" class="btn btn-danger btn-sm" value="退室">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>
+                <button class="btn btn-info btn-sm" data-toggle="collapse" aria-expanded="false" aria-controls="enter"
+                    data-target="#enter">入室</button>
+            </td>
+        </tr>
+        <tr class="hide-table-padding">
+            <td colspan="4">
+
+                <div class="collapse my-4" id="enter">
+                    <div class="card card-body">
+                        <h4>在室者情報の追加</h4>
+                        <form action="/revise/enter" method="post" class="needs-validation" novalidate>
+                            <div class="form-row">
+                                <div class="form-group col-md-6 mb-3">
+                                    <label for="inputStudentid">学籍番号</label>
+                                    <input type="text" pattern="\d{10}" placeholder＝"10桁の半角数字" class="form-control"
+                                        name="studentid" id="inputStudentid" required>
+                                    <div class="invalid-feedback">
+                                        10桁の整数を入力してください。
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-6 mb-3">
+                                    <label for="inputStudentname">名前</label>
+                                    <input type="text" placeholder＝"できれば半角ｶﾀｶﾅ" size="50" maxlength="50"
+                                        class="form-control" name="studentname" required>
+                                    <div class="invalid-feedback">
+                                        名前を入力してください。
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="datetimePicker">入室時間</label>
+                                <div class="input-group date" id="datetimePicker" data-target-input="nearest">
+                                    <input type="text" pattern="\d{4}\/\d{1,2}\/\d{1,2}\s\d{2}:\d{2}"
+                                        class="form-control datetimepicker-input" data-target="#datetimePicker"
+                                        name="enterdatetime" required>
+                                    <div class="input-group-append" data-target="#datetimePicker"
+                                        data-toggle="datetimepicker">
+                                        <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        右のカレンダーのアイコンを押して日時を入力してください。
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="withHistory" name="withHistory"
+                                        value="1">
+                                    <label class="form-check-label" for="withHistory">
+                                        履歴も同時に変更する場合はチェックを入れる
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary mb-3">入室</button>
+                        </form>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<hr class="my-4">
+
+<h3>履歴を変更する</h3>
+
+<p>削除ボタンを押すと該当のレコードを削除することができます（確認なしに削除されます）。</p>
+<p>追加ボタンから履歴を現在のテーブルの先頭に追加することができます。</p>
+
+<table class="table">
+    <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>記録時間</th>
+            <th>学籍番号</th>
+            <th>名前</th>
+            <th>状態</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>
+                <button class="btn btn-info btn-sm" data-toggle="collapse" aria-expanded="false" aria-controls="add"
+                    data-target="#add">追加</button>
+            </td>
+        </tr>
+        <tr class="hide-table-padding">
+            <td colspan="6">
+                <div class="collapse  in p-3" id="add">
+                    <div class="card card-body">
+                        <h4>履歴の追加</h4>
+                        <form action="/revise/add" method="post" class="needs-validation" novalidate>
+                            <div class="form-row">
+                                <div class="form-group col-md-6 mb-3">
+                                    <label for="inputStudentid">学籍番号</label>
+                                    <input type="text" pattern="[0-9]{10}" placeholder＝"半角数字10桁" class="form-control"
+                                        name="studentid" id="inputStudentid" required>
+                                    <div class="invalid-feedback">
+                                        10桁の整数を入力してください。
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-6 mb-3">
+                                    <label for="inputStudentname">名前</label>
+                                    <input type="text" placeholder＝"できれば半角ｶﾀｶﾅ" size="50" maxlength="50"
+                                        class="form-control" name="studentname" required>
+                                    <div class="invalid-feedback">
+                                        名前を入力してください。
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="datetimePicker2">入室時間</label>
+                                <div class="input-group date" id="datetimePicker2" data-target-input="nearest">
+                                    <input type="text" pattern="\d{4}\/\d{1,2}\/\d{1,2}\s\d{2}:\d{2}"
+                                        class="form-control datetimepicker-input" data-target="#datetimePicker2"
+                                        name="historydatetime" required>
+                                    <div class="input-group-append" data-target="#datetimePicker2"
+                                        data-toggle="datetimepicker">
+                                        <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        右のカレンダーのアイコンを押して日時を入力してください。
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="history">入室or退室</label>
+                                <select name="status" class="custom-select mr-sm-2">
+                                    <option value="1">入室</option>
+                                    <option value="0">退室</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary mb-3">レコードを追加</button>
+                        </form>
+                    </div>
+                </div>
+
+            </td>
+        </tr>
+
+        {% for t in history[::-1] %}
+        <tr>
+            <td>{{ t['id'] }}</td>
+            <td>{{ t['time'] }}</td>
+            <td>{{ t['student_id'] }}</td>
+            <td>{{ t['student_name'] }}</td>
+            <td>{% if t['status_bool'] %}
+                入室
+                {% else %}
+                退室
+                {% endif %}
+            </td>
+            <td>
+                <form action="/revise/delete/{{ t.id }}" method="post" novalidate>
+                    <input type="submit" class="btn btn-danger btn-sm" value="削除">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<hr class="my-4">
+
+
+{% endblock %}

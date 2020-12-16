@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block content %}
+
+
+<br>
+<div class="row">
+    <div class="col-md-10">
+        <h1>{{ title }}</h1>
+    </div>
+</div>
+{% if room|length>0 %}
+<p>いま{{room|length}}人います 入室中：
+{% for t in room %}
+{{ t['student_name'] }} / 
+{% endfor %}
+</p>
+{% else %}
+<p> 今はだれもいません </p>
+{% endif %}
+
+<table class="table">
+    <thead class="table-dark">
+    <tr>
+        <th>#</th>
+        <th>記録時間</th>
+        <th>名前</th>
+        <th>状態</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for t in history[::-1] %}
+    <tr>
+        <td>{{ t['id'] }}</td>
+        <td>{{ t['time'] }}</td>
+        <td>{{ t['student_name'] }}</td>
+        <td>{% if t['status_bool'] %}
+            入室
+            {% else %}
+            退室
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<div class="mb-3">
+    <a href="/download" class="btn btn-primary">全履歴をCSV形式でダウンロード</a>
+</div>
+ 
+<div class="mb-3">
+    <a href="/revise" class="btn btn-danger btn-primary">記録を修正する</a>
+</div>
+
+
+{% endblock %}

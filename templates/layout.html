@@ -24,6 +24,9 @@
         src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.0/js/tempusdominus-bootstrap-4.min.js">
     </script>
     <script>
+
+        // revise
+        
         (function () {
             'use strict';
             window.addEventListener('load', function () {
@@ -51,6 +54,15 @@
                     down: 'fas fa-arrow-down'
                 }
             });
+        });
+
+        // sound
+
+        $(document).on('change', ':file', function() {
+            var input = $(this),
+            numFiles = input.get(0).files ? input.get(0).files.length : 1,
+            label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+            input.parent().parent().next(':text').val(label);
         });
     </script>
 <style>

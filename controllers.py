@@ -1,9 +1,14 @@
 import csv
+import glob
+import os
+import shutil
 from datetime import datetime
 from io import StringIO
 
-from fastapi import FastAPI, Form
+import yaml
+from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.responses import RedirectResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
 from starlette.status import HTTP_303_SEE_OTHER
 from starlette.templating import Jinja2Templates
@@ -11,16 +16,28 @@ from starlette.templating import Jinja2Templates
 import db
 from models import History, Room
 
-import yaml
-
 yaml_dict = yaml.load(open("key.yaml").read())
 
 app = FastAPI(
-    title=yaml_dict["title"], description=yaml_dict["description"], version=yaml_dict["version"]
+    title=yaml_dict["title"],
+    description=yaml_dict["description"],
+    version=yaml_dict["version"],
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 jinja_env = templates.env
+
+
+ALLOWED_EXTENSIONS = set(["wav"])
+UPLOAD_FOLDER = "./static"
+
+sounds = [os.path.basename(p) for p in glob.glob("./static/*") if os.path.isfile(p)]
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.get("/")
@@ -30,8 +47,36 @@ async def index(request: Request):
     history = db.session.query(History).all()
 
     return templates.TemplateResponse(
-        "index.html", {"request": request, "room": room, "history": history,"title":yaml_dict["title"]}
+        "index.html",
+        {
+            "request": request,
+            "room": room,
+            "history": history,
+            "title": yaml_dict["title"],
+        },
     )
+
+
+@app.get("/soundsetting")
+async def revise(request: Request):
+
+    return templates.TemplateResponse(
+        "sound.html",
+        {"request": request, "title": yaml_dict["title"], "sounds": sounds},
+    )
+
+
+@app.post("/sound/upload")
+async def sound_upload(file: UploadFile = File(...)):
+    if file and allowed_file(file.filename):
+        filename = file.filename
+        fileobj = file.file
+        upload_dir = open(os.path.join(UPLOAD_FOLDER, filename), "wb+")
+        shutil.copyfileobj(fileobj, upload_dir)
+        upload_dir.close()
+        return {"アップロードされたファイル": filename}
+    if file and not allowed_file(file.filename):
+        return {"warning": "許可されたファイルタイプではありません"}
 
 
 @app.get("/revise")
@@ -41,7 +86,13 @@ async def revise(request: Request):
     history = db.session.query(History).all()
 
     return templates.TemplateResponse(
-        "revise.html", {"request": request, "room": room, "history": history,"title":yaml_dict["title"]}
+        "revise.html",
+        {
+            "request": request,
+            "room": room,
+            "history": history,
+            "title": yaml_dict["title"],
+        },
     )
 
 
@@ -80,7 +131,11 @@ async def enter(
 
     time = datetime.strptime(enterdatetime, "%Y/%m/%d %H:%M")
 
-    record_room = Room(time=time, student_id=studentid, student_name=studentname,)
+    record_room = Room(
+        time=time,
+        student_id=studentid,
+        student_name=studentname,
+    )
 
     db.session.add(record_room)
     db.session.commit()

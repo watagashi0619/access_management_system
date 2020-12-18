@@ -45,10 +45,6 @@
             <tr>
                 <th>タイトル</th>
                 <th>再生</th>
-                <th>有効/無効</th>
-                <th>入室曲</th>
-                <th>退室曲</th>
-                <th>除外設定</th>
             </tr>
         </thead>
         <tbody>
@@ -57,48 +53,6 @@
                 <td>{{ sound['soundfile'] }}</td>
                 <td>
                     <audio controls preload="metadata" src="/sounds/{{ sound }}"></audio>
-                </td>
-                <td>
-                    <div class="custom-control custom-switch">
-                        <input type="checkbox" class="custom-control-input" id="customSwitch1">
-                        <label class="custom-control-label" for="customSwitch1"></label>
-                    </div>
-                </td>
-                <td>
-                    <div class="form-group">
-                        <select name="entersound" class="custom-select mr-sm-2">
-                            <option value="0">設定なし</option>
-                            {% for visitor in visited %}
-                            <option value="{{ visitor['student_id']}}"
-                                {% if sound['for_me_enter']==visitor['student_id'] %} selected {% endif %}>
-                                {{ visitor['student_name']}}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </td>
-                <td>
-                    <div class="form-group">
-                        <select name="exitsound" class="custom-select mr-sm-2">
-                            <option value="0">設定なし</option>
-                            {% for visitor in visited %}
-                            <option value="{{ visitor['student_id']}}"
-                                {% if sound['for_me_exit']==visitor['student_id'] %} selected {% endif %}>
-                                {{ visitor['student_name']}}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </td>
-                <td>
-                    <div class="form-group">
-                        <select name="exclude" class="custom-select mr-sm-2">
-                            <option value="0">設定なし</option>
-                            {% for visitor in visited %}
-                            <option value="{{ visitor['student_id']}}" {% if sound['exclude']==visitor['student_id'] %}
-                                selected {% endif %}>
-                                {{ visitor['student_name']}}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
                 </td>
             </tr>
             {% endfor %}

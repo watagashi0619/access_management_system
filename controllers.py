@@ -73,20 +73,6 @@ async def revise(request: Request):
 
 
 @app.post("/soundsetting/upload")
-async def soundsetting_update(request: Request):
-    sounds = db.session.query(Sounds).all()
-    for sound in sounds:
-        soundsession = (
-            db.session.query(Sounds)
-            .filter(Sounds.soundfile == sound["soundfile"])
-            .first()
-        )
-        soundsession.for_me_enter = ""
-        soundsession.for_me_exit = ""
-        soundsession.exclude = ""
-
-
-@app.post("/soundsetting/upload")
 async def sound_upload(file: UploadFile = File(...)):
     if file and allowed_file(file.filename):
         filename = file.filename

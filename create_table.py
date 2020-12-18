@@ -57,4 +57,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    table_management("3210987624", "test2", datetime.now())

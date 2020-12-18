@@ -1,5 +1,6 @@
 import csv
 import glob
+import mimetypes
 import os
 import shutil
 from datetime import datetime
@@ -14,7 +15,7 @@ from starlette.status import HTTP_303_SEE_OTHER
 from starlette.templating import Jinja2Templates
 
 import db
-from models import History, Room
+from models import History, Room, Sounds, Visited
 
 yaml_dict = yaml.load(open("key.yaml").read())
 
@@ -24,16 +25,14 @@ app = FastAPI(
     version=yaml_dict["version"],
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/sounds", StaticFiles(directory="sounds"), name="sounds")
 
 templates = Jinja2Templates(directory="templates")
 jinja_env = templates.env
 
 
-ALLOWED_EXTENSIONS = set(["wav"])
-UPLOAD_FOLDER = "./static"
-
-sounds = [os.path.basename(p) for p in glob.glob("./static/*") if os.path.isfile(p)]
+ALLOWED_EXTENSIONS = set(["wav", "mp3"])
+UPLOAD_FOLDER = "./sounds"
 
 
 def allowed_file(filename):
@@ -59,14 +58,35 @@ async def index(request: Request):
 
 @app.get("/soundsetting")
 async def revise(request: Request):
+    sounds = db.session.query(Sounds).all()
+    visited = db.session.query(Visited).all()
 
     return templates.TemplateResponse(
         "sound.html",
-        {"request": request, "title": yaml_dict["title"], "sounds": sounds},
+        {
+            "request": request,
+            "title": yaml_dict["title"],
+            "sounds": sounds,
+            "visited": visited,
+        },
     )
 
 
-@app.post("/sound/upload")
+@app.post("/soundsetting/upload")
+async def soundsetting_update(request: Request):
+    sounds = db.session.query(Sounds).all()
+    for sound in sounds:
+        soundsession = (
+            db.session.query(Sounds)
+            .filter(Sounds.soundfile == sound["soundfile"])
+            .first()
+        )
+        soundsession.for_me_enter = ""
+        soundsession.for_me_exit = ""
+        soundsession.exclude = ""
+
+
+@app.post("/soundsetting/upload")
 async def sound_upload(file: UploadFile = File(...)):
     if file and allowed_file(file.filename):
         filename = file.filename
@@ -74,9 +94,22 @@ async def sound_upload(file: UploadFile = File(...)):
         upload_dir = open(os.path.join(UPLOAD_FOLDER, filename), "wb+")
         shutil.copyfileobj(fileobj, upload_dir)
         upload_dir.close()
-        return {"アップロードされたファイル": filename}
+
+        record_sound = Sounds(
+            soundfile=filename,
+            available=True,
+            for_me_enter="",
+            for_me_exit="",
+            exclude="",
+        )
+
+        db.session.add(record_sound)
+        db.session.commit()
+        db.session.close()
+
+        return RedirectResponse("/soundsetting", status_code=HTTP_303_SEE_OTHER)
     if file and not allowed_file(file.filename):
-        return {"warning": "許可されたファイルタイプではありません"}
+        return {"warning": "Illegal extension"}
 
 
 @app.get("/revise")
@@ -100,7 +133,7 @@ async def revise(request: Request):
 async def add(
     request: Request,
     historydatetime: str = Form(...),
-    studentid: int = Form(...),
+    studentid: str = Form(...),
     studentname: str = Form(...),
     status: int = Form(...),
 ):
@@ -123,7 +156,7 @@ async def add(
 async def enter(
     request: Request,
     enterdatetime: str = Form(...),
-    studentid: int = Form(...),
+    studentid: str = Form(...),
     studentname: str = Form(...),
 ):
 
@@ -131,11 +164,7 @@ async def enter(
 
     time = datetime.strptime(enterdatetime, "%Y/%m/%d %H:%M")
 
-    record_room = Room(
-        time=time,
-        student_id=studentid,
-        student_name=studentname,
-    )
+    record_room = Room(time=time, student_id=studentid, student_name=studentname,)
 
     db.session.add(record_room)
     db.session.commit()
@@ -169,7 +198,7 @@ async def delete(id: int):
 
 
 @app.api_route("/revise/left/{student_id}", methods=["POST", "DELETE"])
-async def left(student_id: int):
+async def left(student_id: str):
 
     db.session.delete(db.session.query(Room).filter_by(student_id=student_id).first())
     db.session.commit()

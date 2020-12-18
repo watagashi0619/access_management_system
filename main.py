@@ -21,18 +21,18 @@ def connected(tag):
                 exists = create_table.table_management(student_id, student_name, time)
                 if not exists:
                     slack_post.enter(time, student_name)
-                    sound = random.choice(glob.glob("./sounds/*")
-                    if sound.rsplit(".", 1)[1].lower()=="wav":
-                        subprocess.run(["aplay",sound])
-                    else: # mp3
-                        subprocess.run(["mpg321",sound])
+                    sound = random.choice(glob.glob("./sounds/*"))
+                    if sound.rsplit(".", 1)[1].lower() == "wav":
+                        subprocess.run(["aplay", sound])
+                    else:  # mp3
+                        subprocess.run(["mpg321", sound])
                 else:
                     slack_post.leave(time, student_name)
-                    sound = random.choice(glob.glob("./sounds/*")
-                    if sound.rsplit(".", 1)[1].lower()=="wav":
-                        subprocess.run(["aplay",sound])
-                    else: # mp3
-                        subprocess.run(["mpg321",sound])
+                    sound = random.choice(glob.glob("./sounds/*"))
+                    if sound.rsplit(".", 1)[1].lower() == "wav":
+                        subprocess.run(["aplay", sound])
+                    else:  # mp3
+                        subprocess.run(["mpg321", sound])
                     """
                     if random.randint(0, 9) == 0:
                         subprocess.run(["aplay", "audio/teikyo_full.wav"])

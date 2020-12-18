@@ -1,6 +1,4 @@
 import csv
-import glob
-import mimetypes
 import os
 import shutil
 from datetime import datetime

@@ -1,4 +1,4 @@
-# 入退室管理システム v1.0
+# 入退室管理システム v1.1
 
 ## 簡単な説明
 
@@ -12,7 +12,7 @@
 * slackに投稿（slackbotのtoken取得が必要）
 * カードの情報によるデータベースの更新（データベースの作成を先に行わないと`run.py`の立ち上げの時にエラーが出ます）
 * タッチ音
-* 関連：`slack_post.py`,`create_table.py`,`db.py`
+* 関連：`slack_post.py`,`reader.py`,`create_table.py`,`db.py`
 ### `run.py`
 
 * 管理webアプリの立ち上げ
@@ -22,9 +22,10 @@
     * roomのレコード削除
     * historyの先頭にレコードの追加
     * roomにレコードの追加（option：同時にhistoryの先頭にレコードの追加）
+* `localhost:8000/soundsetting` から入退室音の追加ができる．
+* 関連：`controllers.py`,`db.py`,`models.py`
 
 ## そのほか
 
 * 遊び心要素
     * 京大の学生証だけではなくsuicaの残高読み取りができるようになっている（ただしモバイルは非対応）
-    * タッチしたときの音がファミマ

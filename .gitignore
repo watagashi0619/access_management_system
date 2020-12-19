@@ -1,4 +1,7 @@
+key.yaml
 db.sqlite3
 __pycache__/
 .vscode
-audio/
+default_sounds/
+enter_sounds/
+exit_sounds/

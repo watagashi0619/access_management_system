@@ -1,3 +1,6 @@
+import glob
+import random
+import subprocess
 from datetime import datetime
 
 import nfc
@@ -5,10 +8,6 @@ import nfc
 import create_table
 import reader
 import slack_post
-
-import subprocess
-
-import random
 
 
 def connected(tag):
@@ -19,21 +18,31 @@ def connected(tag):
                 # 京都大学学生証
                 student_id, student_name = reader.read_kucard(tag)
                 time = datetime.now()
-                exists = create_table.table_management(student_id, student_name, time)
+                exists, visited = create_table.table_management(
+                    student_id, student_name, time
+                )
                 if not exists:
                     slack_post.enter(time, student_name)
-                    subprocess.run(["aplay","audio/famima.wav"])
+                    if not visited:
+                        subprocess.run(["aplay", "./default_sounds/famima.wav"])
+                    else:
+                        sound = random.choice(glob.glob("./enter_sounds/*"))
+                        if sound.rsplit(".", 1)[1].lower() == "wav":
+                            subprocess.run(["aplay", sound])
+                        else:  # mp3
+                            subprocess.run(["mpg321", sound])
                 else:
                     slack_post.leave(time, student_name)
-                    if random.randint(0,9)==0:
-                        subprocess.run(["aplay","audio/teikyo_full.wav"])
-                    else:
-                        subprocess.run(["aplay","audio/teikyo.wav"])
+                    sound = random.choice(glob.glob("./exit_sounds/*"))
+                    if sound.rsplit(".", 1)[1].lower() == "wav":
+                        subprocess.run(["aplay", sound])
+                    else:  # mp3
+                        subprocess.run(["mpg321", sound])
             elif tag.sys == 0x0003:
                 # 交通系icカード
                 balance = reader.read_suica(tag)
                 slack_post.balance_check(balance)
-                subprocess.run(["aplay","audio/suica_beep.wav"])
+                subprocess.run(["aplay", "default_sounds/suica_beep.wav"])
         except KeyboardInterrupt:
             print("interrupt")
             exit()

@@ -1,5 +1,5 @@
 title: "入退室管理システム"
 description: "学生証タッチで入退室管理"
-version: "1.0"
+version: "1.1"
 slack_token: "YOUR_SLACK_TOKEN"
 slack_channel: "YOUR_SLACK_CHANNEL"

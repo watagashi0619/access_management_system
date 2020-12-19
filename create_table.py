@@ -46,7 +46,7 @@ def table_management(student_id, student_name, time):
     db.session.commit()
     db.session.close()
 
-    return exists
+    return exists, visited
 
 
 def main():

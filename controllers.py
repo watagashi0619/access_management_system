@@ -1,6 +1,7 @@
 import csv
 import os
 import shutil
+import subprocess
 from datetime import datetime
 from io import StringIO
 
@@ -13,7 +14,7 @@ from starlette.status import HTTP_303_SEE_OTHER
 from starlette.templating import Jinja2Templates
 
 import db
-from models import History, Room, Sounds, Visited
+from models import *
 
 yaml_dict = yaml.load(open("key.yaml").read())
 
@@ -23,14 +24,13 @@ app = FastAPI(
     version=yaml_dict["version"],
 )
 
-app.mount("/sounds", StaticFiles(directory="sounds"), name="sounds")
+app.mount("/enter_sounds", StaticFiles(directory="enter_sounds"), name="enter_sounds")
+app.mount("/exit_sounds", StaticFiles(directory="exit_sounds"), name="exit_sounds")
 
 templates = Jinja2Templates(directory="templates")
 jinja_env = templates.env
 
-
 ALLOWED_EXTENSIONS = set(["wav", "mp3"])
-UPLOAD_FOLDER = "./sounds"
 
 
 def allowed_file(filename):
@@ -56,7 +56,8 @@ async def index(request: Request):
 
 @app.get("/soundsetting")
 async def revise(request: Request):
-    sounds = db.session.query(Sounds).all()
+    enter_sounds = db.session.query(EnterSounds).all()
+    exit_sounds = db.session.query(ExitSounds).all()
     visited = db.session.query(Visited).all()
 
     return templates.TemplateResponse(
@@ -64,28 +65,39 @@ async def revise(request: Request):
         {
             "request": request,
             "title": yaml_dict["title"],
-            "sounds": sounds,
+            "enter_sounds": enter_sounds,
+            "exit_sounds": exit_sounds,
             "visited": visited,
         },
     )
 
 
-@app.post("/soundsetting/upload")
-async def sound_upload(file: UploadFile = File(...)):
+@app.post("/soundsetting/upload/{enter_or_exit}")
+async def sound_upload_enter(enter_or_exit: int, file: UploadFile = File(...)):
     if file and allowed_file(file.filename):
         filename = file.filename
         fileobj = file.file
-        upload_dir = open(os.path.join(UPLOAD_FOLDER, filename), "wb+")
+        if enter_or_exit == 1:
+            upload_dir = open(os.path.join("./enter_sounds", filename), "wb+")
+        else:
+            upload_dir = open(os.path.join("./exit_sounds", filename), "wb+")
         shutil.copyfileobj(fileobj, upload_dir)
         upload_dir.close()
 
-        record_sound = Sounds(
-            soundfile=filename,
-            available=True,
-            for_me_enter="",
-            for_me_exit="",
-            exclude="",
-        )
+        if enter_or_exit == 1:
+            record_sound = EnterSounds(
+                soundfile=filename,
+                available=True,
+                for_me="",
+                exclude="",
+            )
+        else:
+            record_sound = ExitSounds(
+                soundfile=filename,
+                available=True,
+                for_me="",
+                exclude="",
+            )
 
         db.session.add(record_sound)
         db.session.commit()
@@ -94,6 +106,28 @@ async def sound_upload(file: UploadFile = File(...)):
         return RedirectResponse("/soundsetting", status_code=HTTP_303_SEE_OTHER)
     if file and not allowed_file(file.filename):
         return {"warning": "Illegal extension"}
+
+
+@app.api_route(
+    "/soundsetting/delete/{enter_or_exit}/{soundfile}", methods=["POST", "DELETE"]
+)
+async def delete(enter_or_exit: int, soundfile: str):
+
+    if enter_or_exit == 1:
+        db.session.delete(
+            db.session.query(EnterSounds).filter_by(soundfile=soundfile).first()
+        )
+        subprocess.run(["rm", "enter_sounds/" + soundfile])
+    else:
+        db.session.delete(
+            db.session.query(ExitSounds).filter_by(soundfile=soundfile).first()
+        )
+        subprocess.run(["rm", "exit_sounds/" + soundfile])
+
+    db.session.commit()
+    db.session.close()
+
+    return RedirectResponse("/soundsetting", status_code=HTTP_303_SEE_OTHER)
 
 
 @app.get("/revise")
@@ -148,7 +182,11 @@ async def enter(
 
     time = datetime.strptime(enterdatetime, "%Y/%m/%d %H:%M")
 
-    record_room = Room(time=time, student_id=studentid, student_name=studentname,)
+    record_room = Room(
+        time=time,
+        student_id=studentid,
+        student_name=studentname,
+    )
 
     db.session.add(record_room)
     db.session.commit()

@@ -18,7 +18,7 @@
 
 <h3>タッチ音を追加</h3>
 
-<form action='/soundsetting/upload' method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data">
     <div class="form-row">
         <div class="form-group col-md-8 mb-3">
             <div class="custom-file">
@@ -26,33 +26,71 @@
                 <label class="custom-file-label" for="CustomFile">Choose file (wav or mp3) ...</label>
             </div>
         </div>
-        <div class="input-group col-md-4">
-            <input type='submit' class="btn btn-primary mb-3" value='upload'>
+        <div class="input-group col-md-4 mb-3">
+            <input type='submit' class="btn btn-primary mb-3 mr-2" value='入室音に追加' formaction="/soundsetting/upload/1">
+            <input type='submit' class="btn btn-primary mb-3" value='退室音に追加' formaction="/soundsetting/upload/0">
         </div>
     </div>
 </form>
 
-<h3>一覧</h3>
+<h3>音源一覧</h3>
+
+<h4>入室</h4>
 
 <table class="table">
-    <form action="/soundsetting/update" method="post" novalidate>
+    
         <thead class="table-dark">
             <tr>
                 <th>タイトル</th>
                 <th>再生</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
-            {% for sound in sounds %}
+            {% for sound in enter_sounds %}
             <tr>
-                <td>{{ sound['soundfile'] }}</td>
+                <td>{{ sound.soundfile }}</td>
                 <td>
-                    <audio controls preload="metadata" src="/sounds/{{ sound }}"></audio>
+                    <audio controls preload="metadata" src="./enter_sounds/{{ sound.soundfile }}"></audio>
+                </td>
+                <td>
+                    <form action="/soundsetting/delete/1/{{ sound.soundfile }}" method="post" novalidate>
+                        <input type="submit" class="btn btn-danger btn-sm" value="削除">
+                    </form>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
-    </form>
+    
+</table>
+
+<h4>退室</h4>
+
+<table class="table">
+    
+    <thead class="table-dark">
+        <tr>
+            <th>タイトル</th>
+            <th>再生</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sound in exit_sounds %}
+        <tr>
+            <td>{{ sound.soundfile }}</td>
+            <td>
+                <audio controls preload="metadata" src="./exit_sounds/{{ sound.soundfile }}"></audio>
+            </td>
+            <td>
+                <form action="/soundsetting/delete/0/{{ sound.soundfile }}" method="post" novalidate>
+                    <input type="submit" class="btn btn-danger btn-sm" value="削除">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
 </table>
 
 

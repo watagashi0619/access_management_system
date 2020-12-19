@@ -97,7 +97,9 @@ class Visited(Base):
     student_name = Column("student_name", String(256))
 
     def __init__(
-        self, student_id: str, student_name: str,
+        self,
+        student_id: str,
+        student_name: str,
     ):
         self.student_id = student_id
         self.student_name = student_name
@@ -111,37 +113,76 @@ class Visited(Base):
         )
 
 
-class Sounds(Base):
+class EnterSounds(Base):
     """
     在室者管理
     soundfile : ファイル名
     available : 利用可能設定
-    for_me_enter : 入場曲設定
-    for_me_exit : 退場曲設定
+    for_me : 専用設定
     exclude : 除外設定
     """
 
-    __tablename__ = "sounds"
+    __tablename__ = "entersounds"
     soundfile = Column("soundfile", String(256), primary_key=True)
     available = Column("available", BOOLEAN)
-    for_me_enter = Column("for_me_enter", String(256))
-    for_me_exit = Column("for_me_exit", String(256))
+    for_me = Column("for_me", String(256))
     exclude = Column("exclude", String(256))
 
     def __init__(
         self,
         soundfile: str,
         available: bool,
-        for_me_enter: str,
-        for_me_exit: str,
+        for_me: str,
         exclude: str,
     ):
         self.soundfile = soundfile
         self.available = available
-        self.for_me_enter = for_me_enter
-        self.for_me_exit = for_me_exit
+        self.for_me = for_me
         self.exclude = exclude
 
+    """
+    def __str__(self):
+        return (
+            " soundfile -> "
+            + str(self.soundfile)
+            + ", available -> "
+            + str(self.available)
+            + ", for_me  -> "
+            + self.for_me
+            + ", exclude -> "
+            + self.exclude
+        )
+    """
+
+
+class ExitSounds(Base):
+    """
+    在室者管理
+    soundfile : ファイル名
+    available : 利用可能設定
+    for_me : 専用設定
+    exclude : 除外設定
+    """
+
+    __tablename__ = "exitsounds"
+    soundfile = Column("soundfile", String(256), primary_key=True)
+    available = Column("available", BOOLEAN)
+    for_me = Column("for_me", String(256))
+    exclude = Column("exclude", String(256))
+
+    def __init__(
+        self,
+        soundfile: str,
+        available: bool,
+        for_me: str,
+        exclude: str,
+    ):
+        self.soundfile = soundfile
+        self.available = available
+        self.for_me = for_me
+        self.exclude = exclude
+
+    """
     def __str__(self):
         return (
             " soundfile -> "
@@ -155,3 +196,4 @@ class Sounds(Base):
             + ", exclude -> "
             + self.exclude
         )
+    """
